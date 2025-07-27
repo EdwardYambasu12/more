@@ -61,7 +61,7 @@
       const id = document.getElementById("participantId").value.trim();
       if (!id) return alert("Please enter or scan an ID");
 
-      fetch(`http://localhost:5000/fed`)
+      fetch(`https://more-mrb9.onrender.com/fed`)
 
         .then(res => res.json())
         .then(data => {
@@ -74,7 +74,7 @@
               `<p class="error">❌ Already Fed: ${id}</p>`;
           } else {
             console.log("not found")
-            fetch(`http://localhost:5000/fed/${id}`, { method: "POST" })
+            fetch(`https://more-mrb9.onrender.com/fed/${id}`, { method: "POST" })
 
               .then(() => {
 
