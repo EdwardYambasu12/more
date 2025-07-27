@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AYAC 2025 Tags</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    @media print {
+      .sheet { page-break-after: always; }
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .sheet {
+      width: 210mm;
+      height: 297mm;
+      padding: 1cm;
+      box-sizing: border-box;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: stretch;
+    }
+
+    .tag {
+      width: 48%;
+      height: 48%;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      margin-bottom: 1%;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .subhead {
+      font-size: 1rem;
+      color: #4b5563;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .highlight {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .info {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #374151;
+    }
+
+    .qrcode {
+      margin-top: 0.5rem;
+    }
+
+    .id {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+
+  <script>
+    const API_URL = "http://localhost:5000/souls";
+
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("container");
+        const tagsPerSheet = 4;
+
+        for (let i = 0; i < data.length; i += tagsPerSheet) {
+          const sheet = document.createElement("div");
+          sheet.className = "sheet";
+
+          const participants = data.slice(i, i + tagsPerSheet);
+
+          participants.forEach((p, index) => {
+            const tag = document.createElement("div");
+            tag.className = "tag";
+
+            tag.innerHTML = `
+              <div class="header" style="color: ${colorMap(p.color)};">Built To Last</div>
+              <div class="subhead">AYAC 2025</div>
+              <div class="highlight" style="color: ${colorMap(p.color)};">${p.fullName}</div>
+              <div class="info">
+                ${p.church}<br/>
+                ${p.country}<br/>
+                Age: ${p.ageGroup} | ${p.accommodation}
+              </div>
+              <div class="qrcode" id="qrcode-${i + index}"></div>
+              <div class="id">ID: ${p.id}</div>
+            `;
+
+            sheet.appendChild(tag);
+
+            // Generate QR Code
+            const qrDiv = tag.querySelector(`#qrcode-${i + index}`);
+            new QRCode(qrDiv, {
+              text: `http://localhost:5000/participant/${p.id}`,
+              width: 100,
+              height: 100
+            });
+          });
+
+          container.appendChild(sheet);
+        }
+      })
+      .catch(err => {
+        document.body.innerHTML = `<p style="color:red; padding:2rem;">Error fetching participants: ${err.message}</p>`;
+      });
+
+    function colorMap(name) {
+      const map = {
+        grace: '#16a34a',
+        fire: '#dc2626',
+        royal: '#1d4ed8',
+        joy: '#f59e0b',
+        default: '#4b5563'
+      };
+      return map.default;
+    }
+  </script>
+</body>
+</html>

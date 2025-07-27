@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AYAC 2025 Admin Dashboard</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background: #f3f4f6;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 1rem 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    th, td {
+      padding: 0.75rem;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: #f9fafb;
+    }
+
+    .view-btn {
+      background: #2563eb;
+      color: white;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .view-btn:hover {
+      background: #1e40af;
+    }
+
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      th {
+        display: none;
+      }
+
+      td {
+        padding: 0.5rem;
+        border-bottom: 1px solid #eee;
+        position: relative;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>AYAC 2025 Admin Dashboard</h1>
+
+  <div class="stat-card">
+    <strong>Total Registrations: </strong><span id="total-count">0</span>
+  </div>
+
+  <input type="text" id="search" class="search-box" placeholder="Search by name or email..." />
+
+  <table id="registrations-table">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Representation</th>
+        <th>Church</th>
+
+        <th>Country</th>
+        <th>Age Group</th>
+        <th>Accommodation</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data rows will be injected here -->
+    </tbody>
+  </table>
+
+  <script>
+    const API_URL = "http://localhost:5000/souls"; // Update if needed
+
+    const tableBody = document.querySelector("#registrations-table tbody");
+    const totalCount = document.getElementById("total-count");
+    const searchInput = document.getElementById("search");
+
+    let registrations = [];
+
+    function renderTable(data) {
+      tableBody.innerHTML = "";
+      data.forEach((reg) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td data-label="Full Name">${reg.id}</td>
+          <td data-label="Full Name">${reg.fullName}</td>
+          <td data-label="Email">${reg.email}</td>
+          <td data-label="Phone">${reg.phone}</td>
+          <td data-label="Full Name">${reg.color}</td>
+          <td data-label="Church">${reg.church}</td>
+          <td data-label="Country">${reg.country}</td>
+          <td data-label="Age Group">${reg.ageGroup}</td>
+          <td data-label="Accommodation">${reg.accommodation}</td>
+          <td data-label="Action">
+            <a href="/participant/${reg.id}" class="view-btn">View</a>
+          </td>
+        `;
+        tableBody.appendChild(row);
+      });
+      totalCount.textContent = data.length;
+    }
+
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase();
+      const filtered = registrations.filter((reg) =>
+        reg.fullName.toLowerCase().includes(query) || reg.email.toLowerCase().includes(query)
+      );
+      renderTable(filtered);
+    });
+
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((data) => {
+        registrations = data;
+        renderTable(registrations);
+      })
+      .catch((err) => {
+        alert("Failed to load data. Please check the server.");
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
