@@ -1,38 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Feeding Scanner</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f7fc;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
       padding: 2rem;
-      text-align: center;
+      margin: 0;
     }
+
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 2rem;
+    }
+
     input, button {
-      padding: 10px;
+      padding: 12px 16px;
       font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
       margin: 10px 0;
-      width: 80%;
+      width: 90%;
       max-width: 400px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    .success { color: green; margin-top: 1rem; }
-    .error { color: red; margin-top: 1rem; }
+
+    input:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+
+    button {
+      background: #3498db;
+      color: white;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      border: none;
+    }
+
+    button:hover {
+      background: #2980b9;
+    }
+
     #video {
       display: none;
       margin-top: 1rem;
-      width: 300px;
-      height: 200px;
-      border: 1px solid #ccc;
+      width: 90%;
+      max-width: 400px;
+      height: 240px;
+      border-radius: 8px;
+      border: 2px solid #ccc;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .success {
+      color: green;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+
+    .error {
+      color: red;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+
+    #status {
+      text-align: center;
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
-  <h2>Feeding Verification</h2>
+  <h2>📋 Feeding Verification</h2>
 
   <button onclick="startScan()">📷 Scan QR Code</button>
-  <br>
   <input type="text" id="participantId" placeholder="Or enter ID manually" />
-  <br>
   <button onclick="checkFeed()">✅ Submit</button>
 
   <video id="video"></video>
@@ -47,42 +98,48 @@
       videoElement.style.display = 'block';
       codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
         if (result) {
-          document.getElementById("participantId").value = result.text;
+          const scannedId = result.text;
+          document.getElementById("participantId").value = scannedId;
           codeReader.reset();
           videoElement.style.display = 'none';
-          checkFeed();
+          const match = scannedId.match(/participant\/(\d+)/);
+          if (match) {
+            document.getElementById("participantId").value = match[1];
+            alert(`Scanned ID: ${match[1]}`);
+          } else {
+            alert("Invalid QR Code format");
+          }
+
+          setTimeout(() => {
+            checkFeed();
+          }, 200);
         }
       });
     }
-
-
 
     function checkFeed() {
       const id = document.getElementById("participantId").value.trim();
       if (!id) return alert("Please enter or scan an ID");
 
       fetch(`https://more-mrb9.onrender.com/fed`)
-
         .then(res => res.json())
         .then(data => {
-          const filter = data.find(idm => idm.id == id )
-          console.log(filter, "filter")
-          if (filter) {
-
-            console.log("exists")
+          const exists = data.find(entry => entry.id == id);
+          if (exists) {
             document.getElementById("status").innerHTML =
               `<p class="error">❌ Already Fed: ${id}</p>`;
           } else {
-            console.log("not found")
             fetch(`https://more-mrb9.onrender.com/fed/${id}`, { method: "POST" })
-
               .then(() => {
-
                 document.getElementById("status").innerHTML =
                   `<p class="success">✅ Marked as Fed: ${id}</p>`;
                 document.getElementById("participantId").value = "";
               });
           }
+        })
+        .catch(error => {
+          document.getElementById("status").innerHTML =
+            `<p class="error">Error: ${error.message}</p>`;
         });
     }
   </script>

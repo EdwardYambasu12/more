@@ -1,78 +1,66 @@
 const express = require("express");
-const fs = require("fs");
-const path = require("path");
 const router = express.Router();
+const Participant = require("./models/Participant");
 
-// Path to data folder and file
-const dataDir = path.join(__dirname, "./data");
-const dataFilePath = path.join(dataDir, "registrations.json");
+const colors = ["hope", "love", "grace", "faith"];
 
-// Ensure data directory exists
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir);
-}
+router.post("/", async (req, res) => {
+  try {
+    const {
+      fullName,
+      email,
+      phone,
+      church,
+      country,
+      ageGroup,
+      accommodation,
+      cluster,
+      specialRequests,
+    } = req.body;
 
-// Ensure JSON file exists
-if (!fs.existsSync(dataFilePath)) {
-  fs.writeFileSync(dataFilePath, "[]");
-}
+    if (!fullName || !email || !phone) {
+      return res
+        .status(400)
+        .json({ message: "Full Name, Email, and Phone are required." });
+    }
 
+    // Generate a unique numeric ID (improve as needed)
+    const user_id = Math.floor(100000 + Math.random() * 900000);
 
-const colors = ["hope", "love", "grace", "faith"]
+    const color = colors[Math.floor(Math.random() * colors.length)];
 
+    const newParticipant = new Participant({
+      id: user_id,
+      fullName,
+      email,
+      phone,
+      church,
+      country,
+      ageGroup,
+      cluster,
+      color,
+      accommodation,
+      specialRequests,
+    });
 
-router.post("/", (req, res) => {
-  const {
-    fullName,
-    email,
-    phone,
-    church,
-    country,
-    ageGroup,
-    accommodation,
-    cluster,
-    specialRequests
-  } = req.body;
+    console.log(await newParticipant.find())
 
-  if (!fullName || !email || !phone) {
-    return res.status(400).json({ message: "Full Name, Email, and Phone are required." });
+    await newParticipant.save();
+
+    res.status(201).json({ message: "Registration successful!", data: newParticipant });
+  } catch (error) {
+    console.error("Error saving registration:", error);
+    res.status(500).json({ message: "Failed to register participant." });
   }
-
-const user_id = Math.round(Math.random()*9999)
-
-const color = colors[Math.round(Math.random()*3)]
-
-  const newEntry = {
-    id: user_id,
-    fullName,
-    email,
-    phone,
-    church,
-    country,
-    ageGroup,
-    cluster,
-    color,
-    accommodation,
-    specialRequests,
-    timestamp: new Date().toISOString(),
-  };
-
-  // Read current registrations
-  const registrations = JSON.parse(fs.readFileSync(dataFilePath, "utf-8"));
-
-  // Add new entry
-  registrations.push(newEntry);
-
-  // Save updated registrations
-  fs.writeFileSync(dataFilePath, JSON.stringify(registrations, null, 2));
-
-  console.log("New Registration Saved:", newEntry);
-  res.status(201).json({ message: "Registration successful!", data: newEntry });
 });
 
-router.get("/", (req, res) => {
-  const registrations = JSON.parse(fs.readFileSync(dataFilePath, "utf-8"));
-  res.json(registrations);
+router.get("/", async (req, res) => {
+  try {
+    const participants = await Participant.find({});
+    res.json(participants);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch participants" });
+  }
 });
 
 module.exports = router;
