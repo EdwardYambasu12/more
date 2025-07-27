@@ -55,19 +55,29 @@
       });
     }
 
+
+
     function checkFeed() {
       const id = document.getElementById("participantId").value.trim();
       if (!id) return alert("Please enter or scan an ID");
 
-      fetch(`/fed/${id}`)
+      fetch(`http://localhost:5000/fed`)
+
         .then(res => res.json())
         .then(data => {
-          if (data.exists) {
+          const filter = data.find(idm => idm.id == id )
+          console.log(filter, "filter")
+          if (filter) {
+
+            console.log("exists")
             document.getElementById("status").innerHTML =
               `<p class="error">❌ Already Fed: ${id}</p>`;
           } else {
-            fetch(`/fed/${id}`, { method: "POST" })
+            console.log("not found")
+            fetch(`http://localhost:5000/fed/${id}`, { method: "POST" })
+
               .then(() => {
+
                 document.getElementById("status").innerHTML =
                   `<p class="success">✅ Marked as Fed: ${id}</p>`;
                 document.getElementById("participantId").value = "";
