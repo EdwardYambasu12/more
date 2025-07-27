@@ -30,6 +30,7 @@ router.post("/", (req, res) => {
     country,
     ageGroup,
     accommodation,
+    cluster,
     specialRequests
   } = req.body;
 
@@ -49,6 +50,7 @@ const color = colors[Math.round(Math.random()*3)]
     church,
     country,
     ageGroup,
+    cluster
     color,
     accommodation,
     specialRequests,
