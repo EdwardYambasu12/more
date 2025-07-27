@@ -19,6 +19,12 @@ app.get('/', (req, res) => {
 app.get("/tags", (req, res)=>{
   res.sendFile(path.join(__dirname, "public", "participant.html"))
 })
+app.get("/scan", (req, res)=>{
+  res.sendFile(path.join(__dirname, "public", "scan.html"))
+})
+app.get("/clear", (req, res)=>{
+  res.sendFile(path.join(__dirname, "public", "clear.html"))
+})
 app.get('/participant/:id', (req, res) => {
   const fs = require('fs');
   const path = require('path');

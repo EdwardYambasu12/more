@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Feeding Scanner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      text-align: center;
+    }
+    input, button {
+      padding: 10px;
+      font-size: 1rem;
+      margin: 10px 0;
+      width: 80%;
+      max-width: 400px;
+    }
+    .success { color: green; margin-top: 1rem; }
+    .error { color: red; margin-top: 1rem; }
+    #video {
+      display: none;
+      margin-top: 1rem;
+      width: 300px;
+      height: 200px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h2>Feeding Verification</h2>
+
+  <button onclick="startScan()">📷 Scan QR Code</button>
+  <br>
+  <input type="text" id="participantId" placeholder="Or enter ID manually" />
+  <br>
+  <button onclick="checkFeed()">✅ Submit</button>
+
+  <video id="video"></video>
+  <div id="status"></div>
+
+  <script src="https://unpkg.com/@zxing/library@latest"></script>
+  <script>
+    const codeReader = new ZXing.BrowserQRCodeReader();
+    const videoElement = document.getElementById('video');
+
+    function startScan() {
+      videoElement.style.display = 'block';
+      codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
+        if (result) {
+          document.getElementById("participantId").value = result.text;
+          codeReader.reset();
+          videoElement.style.display = 'none';
+          checkFeed();
+        }
+      });
+    }
+
+    function checkFeed() {
+      const id = document.getElementById("participantId").value.trim();
+      if (!id) return alert("Please enter or scan an ID");
+
+      fetch(`/fed/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.exists) {
+            document.getElementById("status").innerHTML =
+              `<p class="error">❌ Already Fed: ${id}</p>`;
+          } else {
+            fetch(`/fed/${id}`, { method: "POST" })
+              .then(() => {
+                document.getElementById("status").innerHTML =
+                  `<p class="success">✅ Marked as Fed: ${id}</p>`;
+                document.getElementById("participantId").value = "";
+              });
+          }
+        });
+    }
+  </script>
+</body>
+</html>

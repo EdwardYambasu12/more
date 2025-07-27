@@ -50,7 +50,7 @@ const color = colors[Math.round(Math.random()*3)]
     church,
     country,
     ageGroup,
-    cluster
+    cluster,
     color,
     accommodation,
     specialRequests,

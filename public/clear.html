@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clear Feeding Data</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; }
+    button { padding: 10px 20px; font-size: 1rem; }
+    #message { margin-top: 1rem; color: red; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>⚠️ Clear All Feeding Records</h2>
+  <button onclick="clearData()">Clear Records</button>
+  <div id="message"></div>
+
+  <script>
+    function clearData() {
+      fetch("/fed", { method: "DELETE" })
+        .then(() => {
+          document.getElementById("message").innerText = "✅ All feeding data cleared!";
+        })
+        .catch(() => {
+          document.getElementById("message").innerText = "❌ Error clearing data.";
+        });
+    }
+  </script>
+</body>
+</html>
