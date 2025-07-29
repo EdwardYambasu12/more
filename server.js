@@ -3,9 +3,18 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const registerRoutes = require("./register");
-
+const bodyParser = require("body-parser");
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+
+
+
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
+
 
 // MongoDB connection URL (replace with your own URI)
 const MONGODB_URI = "mongodb+srv://sportsup14:a4gM6dGvo7SHk9aX@cluster0.db0ee.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
