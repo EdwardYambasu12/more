@@ -53,7 +53,7 @@ app.get("/souls", async (req, res) => {
 // Individual participant view
 app.get("/participant/:id", async (req, res) => {
   try {
-    const participant = await Participant.findOne({ id: req.params.id });
+    const participant = await Registration.findOne({ id: req.params.id });
     if (!participant) {
       return res.status(404).send("<h2>Participant not found</h2>");
     }
