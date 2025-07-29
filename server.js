@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // MongoDB connection URL (replace with your own URI)
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://sportsup14:a4gM6dGvo7SHk9aX@cluster0.db0ee.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const MONGODB_URI = "mongodb+srv://sportsup14:a4gM6dGvo7SHk9aX@cluster0.db0ee.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
@@ -35,15 +35,17 @@ app.get("/clear", (req, res) => {
 });
 
 // Models (import from separate file or define here)
-const Participant = require("./models/Participant");
+const Registration = require("./models/participant.js");
 const Fed = require("./models/Fed");
 
 // Get all participants
 app.get("/souls", async (req, res) => {
   try {
-    const participants = await Participant.find({});
+    console.log("Fetching all participants...");
+    const participants = await Registration.find({});
+    console.log(participants, "Participants fetched successfully");
     res.json(participants);
-  } catch (error) {
+  } catch (error) {     
     res.status(500).json({ error: "Failed to fetch participants" });
   }
 });

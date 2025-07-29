@@ -124,6 +124,7 @@
 
   <script>
     const API_URL = "https://more-mrb9.onrender.com/souls"; // Update if needed
+    
 
     const tableBody = document.querySelector("#registrations-table tbody");
     const totalCount = document.getElementById("total-count");
@@ -168,6 +169,7 @@
       .then((res) => res.json())
       .then((data) => {
         registrations = data;
+        console.log(registrations)
         renderTable(registrations);
       })
       .catch((err) => {
