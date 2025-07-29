@@ -10,6 +10,8 @@ const RegistrationSchema = new mongoose.Schema({
   email: String,
   phone: String,
   church: String,
+  photo: String,
+  gender : String,
   country: String,
   ageGroup: String,
   cluster: String,

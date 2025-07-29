@@ -17,6 +17,8 @@ router.post("/", async (req, res) => {
     country,
     ageGroup,
     accommodation,
+    photo,
+    gender,
     cluster,
     specialRequests
   } = req.body;
@@ -48,6 +50,8 @@ router.post("/", async (req, res) => {
       church,
       country,
       ageGroup,
+      photo,
+      gender,
       cluster,
       color,
       accommodation,
