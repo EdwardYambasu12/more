@@ -124,7 +124,9 @@
       fetch(`https://more-mrb9.onrender.com/fed`)
         .then(res => res.json())
         .then(data => {
-          const exists = data.find(entry => entry.id == id);
+          const exists = data.find(entry => entry.participantId == id);
+          console.log(data)
+          console.log("Checking ID:", id, "Exists:", exists);
           if (exists) {
             document.getElementById("status").innerHTML =
               `<p class="error">❌ Already Fed: ${id}</p>`;

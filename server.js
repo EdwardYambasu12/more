@@ -146,29 +146,21 @@ app.get("/participant/:id", async (req, res) => {
 
 // POST /fed/:id - Mark participant as fed
 app.post("/fed/:id", async (req, res) => {
+    console.log("called g")
   const id = req.params.id;
-  try {
-    const participant = await Participant.findOne({ id });
-    if (!participant) {
-      return res.status(404).json({ message: "Participant not found" });
-    }
 
-    const alreadyFed = await Fed.findOne({ participantId: id });
-    if (alreadyFed) {
-      return res.status(400).json({ message: "Participant already marked as fed." });
-    }
-
+ 
     const fedEntry = new Fed({
       participantId: id,
-      fullName: participant.fullName,
+
       fedAt: new Date(),
     });
 
     await fedEntry.save();
-    res.status(200).json({ message: "Participant marked as fed." });
-  } catch (error) {
-    res.status(500).json({ message: "Error marking participant as fed" });
-  }
+
+    console.log(`Participant ${id} marked as fed at ${fedEntry.fedAt}`);
+    res.status(201).json({ message: `Participant ${id} marked as fed`, data: fedEntry });
+ 
 });
 
 // GET /fed - Get all fed records
