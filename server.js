@@ -36,7 +36,7 @@ app.get("/clear", (req, res) => {
 
 // Models (import from separate file or define here)
 const Registration = require("./models/participant.js");
-const Fed = require("./models/Fed");
+const Fed = require("./models/fed.js");
 
 // Get all participants
 app.get("/souls", async (req, res) => {
