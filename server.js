@@ -67,7 +67,10 @@ app.get("/participant/:id", async (req, res) => {
       return res.status(404).send("<h2>Participant not found</h2>");
     }
 
-    // Send HTML page with participant data (same as before)
+    const imageTag = participant.photo
+      ? `<img src="${participant.photo}" alt="Participant Image" class="profile-img"/>`
+      : `<div style="text-align:center; color:#9ca3af;">No image available</div>`;
+
     res.send(`
       <!DOCTYPE html>
       <html lang="en">
@@ -89,6 +92,15 @@ app.get("/participant/:id", async (req, res) => {
             border-radius: 12px;
             padding: 2rem;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+          }
+          .profile-img {
+            display: block;
+            margin: 0 auto 1.5rem auto;
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #ccc;
           }
           h2 {
             font-size: 1.5rem;
@@ -124,20 +136,26 @@ app.get("/participant/:id", async (req, res) => {
       </head>
       <body>
         <div class="card">
+          ${imageTag}
           <h2>Participant Details</h2>
+          <div class="field"><div class="label">Id:</div><div class="value">${participant.id}</div></div>
           <div class="field"><div class="label">Full Name:</div><div class="value">${participant.fullName}</div></div>
           <div class="field"><div class="label">Email:</div><div class="value">${participant.email}</div></div>
           <div class="field"><div class="label">Phone:</div><div class="value">${participant.phone}</div></div>
+          <div class="field"><div class="label">department:</div><div class="value">${participant.color}</div></div>
+          <div class="field"><div class="label">Gender:</div><div class="value">${participant.gender}</div></div>
+          <div class="field"><div class="label">Cluster:</div><div class="value">${participant.cluster}</div></div>
           <div class="field"><div class="label">Church:</div><div class="value">${participant.church}</div></div>
           <div class="field"><div class="label">Country:</div><div class="value">${participant.country}</div></div>
           <div class="field"><div class="label">Age Group:</div><div class="value">${participant.ageGroup}</div></div>
           <div class="field"><div class="label">Accommodation:</div><div class="value">${participant.accommodation}</div></div>
-          <a href="/" class="back-link">← Back to Dashboard</a>
+          
         </div>
       </body>
       </html>
     `);
   } catch (error) {
+    console.error(error);
     res.status(500).send("<h2>Server error</h2>");
   }
 });
