@@ -15,7 +15,7 @@
 
   <script>
     function clearData() {
-      fetch("/fedd", { method: "DELETE" })
+      fetch("/fed", { method: "DELETE" })
         .then(() => {
           document.getElementById("message").innerText = "✅ All feeding data cleared!";
         })

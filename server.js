@@ -59,6 +59,22 @@ app.get("/souls", async (req, res) => {
   }
 });
 
+app.get("/tags_info", async (req, res) => {
+  try {
+    console.log("Fetching all participants without photo...");
+    
+    // Find all documents and exclude the 'photo' field
+    const participants = await Registration.find({}, { photo: 0 });
+
+    console.log("Participants fetched successfully");
+    res.json(participants);
+  } catch (error) {
+    console.error("Error fetching participants:", error);
+    res.status(500).json({ error: "Failed to fetch participants" });
+  }
+});
+
+
 // Individual participant view
 app.get("/participant/:id", async (req, res) => {
   try {
