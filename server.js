@@ -59,6 +59,19 @@ app.get("/souls", async (req, res) => {
   }
 });
 
+app.get("/clear_souls", async(req, res)=>{
+  try {
+    console.log("Clearing all participants...");
+    await Registration.deleteMany({});
+    console.log("All participants cleared successfully");
+    res.status(200).json({ message: "All participants cleared successfully" });
+  } catch (error) {
+    console.error("Error clearing participants:", error);
+    res.status(500).json({ error: "Failed to clear participants" });
+  }
+
+})
+
 app.get("/tags_info", async (req, res) => {
   try {
     console.log("Fetching all participants without photo...");
