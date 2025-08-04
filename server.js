@@ -71,6 +71,21 @@ app.get("/clear_souls", async(req, res)=>{
   }
 
 })
+app.delete("/tags_info/:id", (req, res) => {
+  const id = req.params.id;
+  Registration.findByIdAndDelete(id)
+    .then((result) => {
+      if (!result) {
+        return res.status(404).json({ error: "Registration not found" });
+      }
+      res.status(200).json({ message: "Deleted successfully" });
+    })
+    .catch((error) => {
+      console.error("Error deleting registration:", error);
+      res.status(500).json({ error: "Failed to delete registration" });
+    });
+});
+
 
 app.get("/tags_info", async (req, res) => {
   try {
