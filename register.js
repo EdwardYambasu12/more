@@ -5,11 +5,10 @@ const Registration = require("./models/participant.js");
 const colors = ["hope", "love", "grace", "faith"];
 
 router.post("/", async (req, res) => {
-
   console.log("Received registration data:", req.body);
+
   const id = Math.floor(Math.random() * 2000) + 1; // Generate a random ID between 1 and 2000
   const {
-   
     fullName,
     email,
     phone,
@@ -27,7 +26,7 @@ router.post("/", async (req, res) => {
     return res.status(400).json({ message: "ID, Full Name, Email, and Phone are required." });
   }
 
-  // ✅ Ensure ID is a valid number within range
+  // ✅ Ensure ID is within range
   const numericId = parseInt(id, 10);
   if (isNaN(numericId) || numericId < 1 || numericId > 2000) {
     return res.status(400).json({ message: "ID must be a number between 0001 and 2000." });
@@ -35,9 +34,17 @@ router.post("/", async (req, res) => {
 
   try {
     // ✅ Check if ID already exists
-    const existing = await Registration.findOne({ id: id });
-    if (existing) {
+    const existingById = await Registration.findOne({ id: id });
+    if (existingById) {
       return res.status(409).json({ message: "ID already registered." });
+    }
+
+    // ✅ Check if fullName already exists (case-insensitive)
+    const existingByName = await Registration.findOne({
+      fullName: { $regex: new RegExp(`^${fullName}$`, "i") }
+    });
+    if (existingByName) {
+      return res.status(409).json({ message: "Name already registered." });
     }
 
     const color = colors[Math.floor(Math.random() * colors.length)];

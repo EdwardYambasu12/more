@@ -73,6 +73,7 @@ app.get("/clear_souls", async(req, res)=>{
 })
 app.delete("/tags_info/:id", (req, res) => {
   const id = req.params.id;
+  console.log("money", id)
   Registration.findByIdAndDelete(id)
     .then((result) => {
       if (!result) {
