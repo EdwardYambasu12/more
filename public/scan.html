@@ -3,147 +3,538 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Feeding Scanner</title>
+  <title>Feeding Scanner · upgrade</title>
+  <!-- Google Font & Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
   <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: #f4f7fc;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      padding: 2rem;
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(145deg, #f0f5fe 0%, #e6edf7 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    /* glassmorphism card */
+    .scanner-card {
+      max-width: 720px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 48px;
+      padding: 2.5rem 2rem 2.8rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 20, 40, 0.25),
+                  inset 0 1px 2px rgba(255,255,255,0.6);
+      border: 1px solid rgba(255,255,255,0.5);
+      transition: all 0.2s ease;
     }
 
     h2 {
-      color: #2c3e50;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 1.9rem;
+      letter-spacing: -0.02em;
+      color: #0b1e33;
+      margin-bottom: 0.2rem;
+    }
+
+    .subhead {
+      color: #2c4c6b;
+      font-weight: 400;
+      font-size: 0.95rem;
       margin-bottom: 2rem;
+      border-left: 3px solid #2f7fc7;
+      padding-left: 1rem;
+      background: rgba(47, 127, 199, 0.06);
+      border-radius: 0 12px 12px 0;
     }
 
-    input, button {
-      padding: 12px 16px;
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .input-row input {
+      flex: 1 1 180px;
+      padding: 14px 18px;
       font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin: 10px 0;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 60px;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(4px);
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.02), 0 2px 4px rgba(0,0,0,0.02);
+      transition: 0.2s;
+      font-weight: 450;
+      color: #0b1e33;
     }
 
-    input:focus {
-      border-color: #3498db;
+    .input-row input:focus {
       outline: none;
+      border-color: #2f7fc7;
+      background: white;
+      box-shadow: 0 0 0 4px rgba(47, 127, 199, 0.15);
     }
 
-    button {
-      background: #3498db;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s ease;
+    .input-row input::placeholder {
+      color: #7b93ab;
+      font-weight: 350;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 14px 24px;
+      font-size: 1rem;
+      font-weight: 500;
       border: none;
+      border-radius: 60px;
+      background: white;
+      color: #0b1e33;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 1px solid rgba(0,0,0,0.04);
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(4px);
+      flex: 1 0 auto;
     }
 
-    button:hover {
-      background: #2980b9;
+    .btn-primary {
+      background: #1a4b74;
+      color: white;
+      border: none;
+      box-shadow: 0 8px 18px -6px rgba(26, 75, 116, 0.3);
+    }
+
+    .btn-primary:hover {
+      background: #0f3b5e;
+      transform: scale(0.98);
+      box-shadow: 0 4px 12px rgba(26, 75, 116, 0.2);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.6);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .btn-secondary:hover {
+      background: white;
+      border-color: #a0b8d0;
+    }
+
+    .btn-icon {
+      font-size: 1.2rem;
+    }
+
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin: 0.25rem 0 1.25rem;
+    }
+
+    .action-bar .btn {
+      flex: 1 1 140px;
     }
 
     #video {
       display: none;
-      margin-top: 1rem;
-      width: 90%;
-      max-width: 400px;
-      height: 240px;
-      border-radius: 8px;
-      border: 2px solid #ccc;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-
-    .success {
-      color: green;
-      font-weight: bold;
-      margin-top: 1rem;
-    }
-
-    .error {
-      color: red;
-      font-weight: bold;
-      margin-top: 1rem;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: 32px;
+      background: #0b1e33;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      margin: 0.75rem 0 1rem;
+      border: 2px solid rgba(255,255,255,0.5);
     }
 
     #status {
-      text-align: center;
-      margin-top: 1rem;
+      margin: 0.75rem 0 1.5rem;
+      min-height: 3.5rem;
+    }
+
+    .status-box {
+      padding: 1rem 1.5rem;
+      border-radius: 60px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(0,0,0,0.02);
+    }
+
+    .success {
+      color: #0b6e4f;
+      background: rgba(11, 110, 79, 0.08);
+      border-left: 6px solid #0b6e4f;
+    }
+
+    .error {
+      color: #b13e4b;
+      background: rgba(177, 62, 75, 0.08);
+      border-left: 6px solid #b13e4b;
+    }
+
+    .info {
+      color: #1a4b74;
+      background: rgba(26, 75, 116, 0.06);
+      border-left: 6px solid #1a4b74;
+    }
+
+    /* loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 1.4rem;
+      height: 1.4rem;
+      border: 3px solid rgba(26, 75, 116, 0.15);
+      border-radius: 50%;
+      border-top-color: #1a4b74;
+      animation: spin 0.8s linear infinite;
+      margin-right: 0.5rem;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status-box.loading {
+      color: #1a4b74;
+      background: rgba(26, 75, 116, 0.06);
+      border-left: 6px solid #1a4b74;
+    }
+
+    /* participant summary mini */
+    .summary-section {
+      margin-top: 2rem;
+      border-top: 1px solid rgba(0,0,0,0.04);
+      padding-top: 1.5rem;
+    }
+
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .summary-header h4 {
+      font-weight: 500;
+      color: #1a3b57;
+      letter-spacing: -0.01em;
+      font-size: 1rem;
+    }
+
+    .summary-header .badge {
+      background: rgba(26, 75, 116, 0.1);
+      padding: 0.25rem 1rem;
+      border-radius: 40px;
+      font-size: 0.8rem;
+      color: #1a4b74;
+      font-weight: 500;
+    }
+
+    .participant-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 0.7rem;
+      max-height: 120px;
+      overflow-y: auto;
+      padding: 0.25rem 0.1rem;
+      scrollbar-width: thin;
+      scrollbar-color: #b0c8de transparent;
+    }
+
+    .participant-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    .participant-list::-webkit-scrollbar-thumb {
+      background: #b0c8de;
+      border-radius: 20px;
+    }
+
+    .participant-chip {
+      background: white;
+      padding: 0.4rem 1rem 0.4rem 1.2rem;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      font-weight: 450;
+      color: #0b1e33;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      border: 1px solid rgba(0,0,0,0.03);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .participant-chip i {
+      font-size: 0.7rem;
+      color: #1f8b4c;
+      opacity: 0.8;
+    }
+
+    .participant-chip.fed i {
+      color: #1f8b4c;
+    }
+
+    .participant-chip.unfed i {
+      color: #b0b8c4;
+    }
+
+    .empty-state {
+      color: #6b85a0;
+      font-size: 0.9rem;
+      padding: 0.4rem 0;
+    }
+
+    .flex-center {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .mt-1 { margin-top: 0.5rem; }
+
+    @media (max-width: 500px) {
+      .scanner-card { padding: 1.8rem 1.2rem; }
+      .action-bar .btn { flex: 1 1 100%; }
+      .input-row input { flex: 1 1 100%; }
     }
   </style>
 </head>
 <body>
-  <h2>📋 Feeding Verification</h2>
+<div class="scanner-card">
+  <h2>
+    <i class="fas fa-utensils" style="color: #1a4b74; font-size: 1.8rem;"></i>
+    Feeding Scanner
+  </h2>
+  <div class="subhead">
+    <i class="fas fa-qrcode" style="margin-right: 0.5rem;"></i> scan · verify · track
+  </div>
 
-  <button onclick="startScan()">📷 Scan QR Code</button>
-  <input type="text" id="participantId" placeholder="Or enter ID manually" />
-  <button onclick="checkFeed()">✅ Submit</button>
+  <!-- video element (hidden by default) -->
+  <video id="video" playsinline></video>
 
-  <video id="video"></video>
+  <!-- input + actions -->
+  <div class="input-group">
+    <div class="input-row">
+      <input type="text" id="participantId" placeholder="Participant ID or scan" />
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-secondary" onclick="startScan()">
+        <i class="fas fa-camera btn-icon"></i> Scan QR
+      </button>
+      <button class="btn btn-primary" onclick="checkFeed()">
+        <i class="fas fa-check btn-icon"></i> Submit
+      </button>
+    </div>
+  </div>
+
+  <!-- status message with spinner support -->
   <div id="status"></div>
 
-  <script src="https://unpkg.com/@zxing/library@latest"></script>
-  <script>
+  <!-- summary of all participants -->
+  <div class="summary-section">
+    <div class="summary-header">
+      <h4><i class="fas fa-users" style="margin-right: 0.5rem;"></i> All participants</h4>
+      <span class="badge" id="countBadge">0</span>
+    </div>
+    <div id="participantList" class="participant-list">
+      <span class="empty-state">Loading participants...</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/@zxing/library@latest"></script>
+<script>
+  (function() {
     const codeReader = new ZXing.BrowserQRCodeReader();
     const videoElement = document.getElementById('video');
+    const statusDiv = document.getElementById('status');
+    const participantIdInput = document.getElementById('participantId');
+    const participantListEl = document.getElementById('participantList');
+    const countBadge = document.getElementById('countBadge');
 
-    function startScan() {
+    // ---------- helpers ----------
+    function setStatus(message, type = 'info') {
+      // if type is 'loading', render spinner
+      if (type === 'loading') {
+        statusDiv.innerHTML = `<div class="status-box loading"><span class="spinner"></span> ${message}</div>`;
+        return;
+      }
+      const iconMap = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+      };
+      statusDiv.innerHTML = `<div class="status-box ${type}"><i class="fas ${iconMap[type] || 'fa-info-circle'}"></i> ${message}</div>`;
+    }
+
+    function clearStatus() {
+      statusDiv.innerHTML = '';
+    }
+
+    // ---------- fetch all participants and render summary ----------
+    async function fetchAndRenderSummary() {
+      try {
+        const res = await fetch('https://more-mrb9.onrender.com/fed');
+        if (!res.ok) throw new Error('Network error');
+        const data = await res.json();
+
+        if (!Array.isArray(data)) {
+          participantListEl.innerHTML = `<span class="empty-state">⚠️ Unexpected data format</span>`;
+          countBadge.textContent = '0';
+          return;
+        }
+
+        const sorted = [...data].sort((a, b) => {
+          if (a.participantId === undefined || a.participantId === null) return 1;
+          if (b.participantId === undefined || b.participantId === null) return -1;
+          if (a.fed === true && b.fed !== true) return -1;
+          if (b.fed === true && a.fed !== true) return 1;
+          return String(a.participantId).localeCompare(String(b.participantId));
+        });
+
+        if (sorted.length === 0) {
+          participantListEl.innerHTML = `<span class="empty-state"><i class="fas fa-inbox"></i> No participants yet</span>`;
+          countBadge.textContent = '0';
+          return;
+        }
+
+        let html = '';
+        let fedCount = 0;
+        sorted.forEach(item => {
+          const id = item.participantId ?? '?';
+          const fed = item.fed === true;
+          if (fed) fedCount++;
+          const chipClass = fed ? 'participant-chip fed' : 'participant-chip unfed';
+          const icon = fed ? 'fa-circle-check' : 'fa-circle';
+          html += `<span class="${chipClass}"><i class="fas ${icon}"></i> ${id}</span>`;
+        });
+
+        participantListEl.innerHTML = html;
+        countBadge.textContent = `${fedCount}/${sorted.length}`;
+      } catch (err) {
+        participantListEl.innerHTML = `<span class="empty-state"><i class="fas fa-triangle-exclamation"></i> Could not load</span>`;
+        countBadge.textContent = '?';
+        console.warn('summary fetch error:', err);
+      }
+    }
+
+    // ---------- checkFeed (submit) with loading spinner ----------
+    window.checkFeed = async function() {
+      const id = participantIdInput.value.trim();
+      if (!id) {
+        setStatus('Please enter or scan an ID', 'error');
+        return;
+      }
+
+      // Show spinner while checking
+      setStatus('Checking participant…', 'loading');
+
+      try {
+        // 1. fetch current list
+        const res = await fetch('https://more-mrb9.onrender.com/fed');
+        if (!res.ok) throw new Error('Failed to fetch data');
+        const data = await res.json();
+
+        const exists = data.find(entry => String(entry.participantId) === String(id));
+
+        if (exists && exists.fed === true) {
+          setStatus(`❌ Already fed: ${id}`, 'error');
+          return;
+        }
+
+        // 2. mark as fed
+        const postRes = await fetch(`https://more-mrb9.onrender.com/fed/${id}`, {
+          method: "POST",
+        });
+        const result = await postRes.json();
+
+        if (postRes.status === 409) {
+          setStatus(`❌ ${result.message}`, "error");
+          return;
+        }
+        if (!postRes.ok) {
+          throw new Error(result.message || "Something went wrong");
+        }
+
+        setStatus(`✅ ${result.message}`, "success");
+        participantIdInput.value = "";
+        await fetchAndRenderSummary();
+      } catch (err) {
+        setStatus(`Error: ${err.message}`, 'error');
+      }
+    };
+
+    // ---------- startScan (QR) ----------
+    window.startScan = function() {
+      clearStatus();
       videoElement.style.display = 'block';
+
+      codeReader.reset();
       codeReader.decodeFromVideoDevice(null, 'video', (result, err) => {
         if (result) {
-          const scannedId = result.text;
-          document.getElementById("participantId").value = scannedId;
-          codeReader.reset();
-          videoElement.style.display = 'none';
-          const match = scannedId.match(/participant\/(\d+)/);
+          const scannedText = result.text;
+          let extractedId = scannedText;
+          const match = scannedText.match(/participant[\/:](\d+)/i);
           if (match) {
-            document.getElementById("participantId").value = match[1];
-            alert(`Scanned ID: ${match[1]}`);
+            extractedId = match[1];
           } else {
-            alert("Invalid QR Code format");
+            const numMatch = scannedText.match(/^\d+$/);
+            if (numMatch) extractedId = numMatch[0];
           }
+
+          participantIdInput.value = extractedId;
+          videoElement.style.display = 'none';
+          codeReader.reset();
+          setStatus(`📸 Scanned: ${extractedId}`, 'info');
 
           setTimeout(() => {
-            checkFeed();
-          }, 200);
+            window.checkFeed();
+          }, 300);
         }
+        // ignore errors (scanning in progress)
       });
-    }
+    };
 
-    function checkFeed() {
-      const id = document.getElementById("participantId").value.trim();
-      if (!id) return alert("Please enter or scan an ID");
+    // ---------- manual submit via Enter key ----------
+    participantIdInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        window.checkFeed();
+      }
+    });
 
-      fetch(`https://more-mrb9.onrender.com/fed`)
-        .then(res => res.json())
-        .then(data => {
-          const exists = data.find(entry => entry.participantId == id);
-          console.log(data)
-          console.log("Checking ID:", id, "Exists:", exists);
-          if (exists) {
-            document.getElementById("status").innerHTML =
-              `<p class="error">❌ Already Fed: ${id}</p>`;
-          } else {
-            fetch(`https://more-mrb9.onrender.com/fed/${id}`, { method: "POST" })
-              .then(() => {
-                document.getElementById("status").innerHTML =
-                  `<p class="success">✅ Marked as Fed: ${id}</p>`;
-                document.getElementById("participantId").value = "";
-              });
-          }
-        })
-        .catch(error => {
-          document.getElementById("status").innerHTML =
-            `<p class="error">Error: ${error.message}</p>`;
-        });
-    }
-  </script>
+    // ---------- initial load ----------
+    fetchAndRenderSummary();
+
+    // re-fetch summary every 8 seconds
+    setInterval(fetchAndRenderSummary, 8000);
+  })();
+</script>
 </body>
 </html>

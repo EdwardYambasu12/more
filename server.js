@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
 
 
 // MongoDB connection URL (replace with your own URI)
-const MONGODB_URI = "mongodb+srv://sportsup14:a4gM6dGvo7SHk9aX@cluster0.db0ee.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const MONGODB_URI = "mongodb+srv://edwardsyambasu_db_user:bxhuqJ83mhFQG78K@cluster0.nwnbuqt.mongodb.net/?retryWrites=true&w=majority";
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
@@ -43,6 +43,9 @@ app.get("/clear", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "clear.html"));
 });
 
+app.get("/register", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "register.html"));
+});
 // Models (import from separate file or define here)
 const Registration = require("./models/participant.js");
 const Fed = require("./models/fed.js");
@@ -209,21 +212,41 @@ app.get("/participant/:id", async (req, res) => {
 
 // POST /fed/:id - Mark participant as fed
 app.post("/fed/:id", async (req, res) => {
-    console.log("called g")
-  const id = req.params.id;
+  try {
+    const id = req.params.id;
 
- 
+    // Check if participant has already been marked as fed
+    const existingFed = await Fed.findOne({ participantId: id });
+
+    if (existingFed) {
+      return res.status(409).json({
+        success: false,
+        message: "User has eaten",
+      });
+    }
+
+    // Create new fed record
     const fedEntry = new Fed({
       participantId: id,
-
       fedAt: new Date(),
     });
 
     await fedEntry.save();
 
     console.log(`Participant ${id} marked as fed at ${fedEntry.fedAt}`);
-    res.status(201).json({ message: `Participant ${id} marked as fed`, data: fedEntry });
- 
+
+    return res.status(201).json({
+      success: true,
+      message: `Participant ${id} marked as fed`,
+      data: fedEntry,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
 });
 
 // GET /fed - Get all fed records
@@ -247,7 +270,7 @@ app.delete("/fed", async (req, res) => {
 });
 
 // Use register routes for registrations
-app.use("/api/register", registerRoutes);
+app.use("/api/registration", registerRoutes);
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);

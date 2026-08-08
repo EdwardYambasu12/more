@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>✨ Conference Registration · NextGen</title>
+  <!-- Bootstrap 5 + Icons + Google Font -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Inter', sans-serif; }
+    body {
+      background: linear-gradient(145deg, #f0f4ff 0%, #e6edfa 100%);
+      min-height: 100vh;
+      padding: 2rem 0;
+    }
+    .header-gradient {
+      background: linear-gradient(135deg, #1e1e2f 0%, #2d2b55 50%, #3b2b6b 100%);
+      color: white;
+      padding: 2.5rem 1.5rem;
+      border-radius: 0 0 40px 40px;
+      margin-bottom: 2.5rem;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
+    }
+    .header-gradient::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 300px;
+      height: 300px;
+      background: rgba(255,215,0,0.08);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .header-gradient h2 {
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      font-size: 2.2rem;
+    }
+    .header-gradient p {
+      opacity: 0.85;
+      font-weight: 400;
+      font-size: 1.1rem;
+    }
+    .card-glass {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.5);
+      border-radius: 32px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.08), 0 8px 20px rgba(0,0,0,0.03);
+      padding: 2.2rem 2rem;
+      transition: transform 0.2s ease;
+    }
+    .form-control, .form-select {
+      height: 54px;
+      border-radius: 16px;
+      border: 1px solid #e2e8f0;
+      background: white;
+      font-size: 0.95rem;
+      padding-left: 1rem;
+      transition: all 0.2s;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: #6c5ce7;
+      box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.15);
+    }
+    .form-label {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #1e1e2f;
+      margin-bottom: 0.4rem;
+      letter-spacing: -0.2px;
+    }
+    .btn-primary {
+      height: 58px;
+      border-radius: 40px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+      border: none;
+      box-shadow: 0 8px 18px rgba(108, 92, 231, 0.25);
+      transition: all 0.25s;
+      letter-spacing: 0.3px;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(108, 92, 231, 0.35);
+      background: linear-gradient(135deg, #5a4bd1, #8f84f0);
+    }
+    .preview-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid white;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      display: none;
+      margin: 0 auto 0.5rem auto;
+      background: #f1f3f7;
+    }
+    .upload-zone {
+      border: 2px dashed #d0d7e6;
+      border-radius: 18px;
+      padding: 0.8rem 1rem;
+      transition: 0.2s;
+      cursor: pointer;
+      background: #f9faff;
+    }
+    .upload-zone:hover {
+      border-color: #6c5ce7;
+      background: #f2f0ff;
+    }
+    .upload-zone .form-control {
+      border: none;
+      box-shadow: none;
+      height: auto;
+      padding: 0.5rem 0;
+      background: transparent;
+    }
+    .upload-zone .form-control:focus {
+      box-shadow: none;
+    }
+    .badge-soft {
+      background: #eef2ff;
+      color: #4338ca;
+      font-weight: 500;
+      padding: 0.3rem 0.8rem;
+      border-radius: 30px;
+      font-size: 0.75rem;
+    }
+    .row-separator {
+      border-bottom: 1px solid #edf2f7;
+      margin: 1rem 0 1.5rem 0;
+    }
+    @media (max-width: 576px) {
+      .card-glass { padding: 1.5rem; }
+      .header-gradient h2 { font-size: 1.8rem; }
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #eef2f6; }
+    ::-webkit-scrollbar-thumb { background: #b9b3d6; border-radius: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header-gradient text-center">
+    <h2><i class="bi bi-person-plus me-2"></i>Participant Registration</h2>
+    <p class="mb-0">Fill in your details — join the conference experience</p>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-lg-8 col-xl-7">
+      <div class="card-glass">
+
+        <form id="registrationForm" novalidate>
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label"><i class="bi bi-person-fill me-1"></i>Full Name</label>
+              <input type="text" class="form-control" id="fullName" placeholder="e.g. James K. Doe" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-envelope-fill me-1"></i>Email</label>
+              <input type="email" class="form-control" id="email" placeholder="you@example.com" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-phone-fill me-1"></i>Phone</label>
+              <input type="text" class="form-control" id="phone" placeholder="+231 77 123 4567" required>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label"><i class="bi bi-building me-1"></i>Church / Assembly</label>
+              <select class="form-select" id="church">
+                <option value="">Select your church</option>
+                <option value="gsa-road">GSA Road</option><option value="redlight">Redlight</option>
+                <option value="jacob-town">Jacob Town</option><option value="php">PHP</option>
+                <option value="fiamah">Fiamah</option><option value="kassellie-blvd">Kassellie Blvd</option>
+                <option value="caldwell">Caldwell</option><option value="bushrodrod-island">Bushrod Island</option>
+                <option value="new-kru-town">New Kru Town</option><option value="mount-barclay">Mount Barclay</option>
+                <option value="fendell">Fendell</option><option value="white-plains">White Plains</option>
+                <option value="banjur">Banjur</option><option value="voa">VOA</option>
+                <option value="kpekor">Kpekor</option><option value="sinje">Sinje</option>
+                <option value="kpor-river">Kpor River</option><option value="tubmansburg">Tubmansburg</option>
+                <option value="nimba-point">Nimba Point</option><option value="robertsport">RobertSport</option>
+                <option value="bopolu">Bopolu</option><option value="baptist-seminary">Baptist Seminary</option>
+                <option value="soul-clinic">Soul Clinic</option><option value="boys-town-2">Boys Town 2</option>
+                <option value="boys-town-yellow">Boys Town Yellow Building</option><option value="marshall-highways">Marshall Highways</option>
+                <option value="marshall-city">Marshall City</option><option value="kpelleh-town">Kpelleh Town</option>
+                <option value="bong-mines">Bong Mines</option><option value="salala">Salala</option>
+                <option value="totota">Totota</option><option value="weala">Weala</option>
+                <option value="cotton-tree">Cotton Tree</option><option value="dolos-town">Dolo's Town</option>
+                <option value="unification-town">Unification Town</option><option value="careysburg">Careysburg</option>
+                <option value="zorzor">Zorzor</option><option value="kolahun">Kolahun</option>
+                <option value="bolahun">Bolahun</option><option value="foya">Foya</option>
+                <option value="foya-tengiah">Foya Tengiah</option><option value="foya-shello">Foya Shello</option>
+                <option value="malamai">Malamai</option><option value="betijama">Betijama</option>
+                <option value="gbarnga">Gbarnga</option><option value="lpmc-gompa">LPMC Gompa</option>
+                <option value="saclepea">Saclepea</option><option value="tapita">Tapita</option>
+                <option value="sanniquellie">Sanniquellie</option><option value="yekepa">Yekepa</option>
+                <option value="gomplay">Gomplay</option><option value="bahn">Bahn</option>
+                <option value="kahnplay">Kahnplay</option><option value="logatuo">Logatuo</option>
+                <option value="toes-town">Toe's Town</option><option value="zwedru">Zwedru</option>
+                <option value="new-jeruselem">New Jeruselem</option><option value="butaw">Butaw</option>
+                <option value="govt-camp">Gov't Camp</option><option value="karquekpo">Karquekpo</option>
+                <option value="harper">Harper</option><option value="kanweaken">Kanweaken</option>
+                <option value="fish-town">Fish Town</option><option value="buah-geeken">Buah Geeken</option>
+                <option value="webbo">Webbo</option><option value="karloken">Karloken</option>
+                <option value="barclayville">Barclayville</option><option value="zlen-town">Zlen Town</option>
+                <option value="lower-buchanan">Lower Buchanan</option><option value="compound-3">Compound #3</option>
+                <option value="yekpa-town">Yekpa Town</option><option value="cesto-city">Cesto City</option>
+                <option value="greenville">Greenville</option><option value="congo-town">Congo Town</option>
+                <option value="barnesville">Barnesville</option><option value="other">Other Church</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-geo-alt-fill me-1"></i>Country</label>
+              <input type="text" class="form-control" id="country" placeholder="Liberia" value="Liberia">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-gender-ambiguous me-1"></i>Gender</label>
+              <select class="form-select" id="gender">
+                <option value="">Choose...</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-calendar3 me-1"></i>Age Group</label>
+              <select class="form-select" id="ageGroup">
+                <option value="">Choose...</option>
+                <option value="Under 18">Under 18</option>
+                <option value="18-25">18-25</option>
+                <option value="26-35">26-35</option>
+                <option value="36-50">36-50</option>
+                <option value="50+">50+</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label"><i class="bi bi-diagram-3 me-1"></i>Cluster</label>
+              <select class="form-select" id="cluster">
+                <option value="">Select cluster</option>
+                <option value="monrovia">MONROVIA</option>
+                <option value="kakata">KAKATA</option>
+                <option value="voinjama">VOINJAMA</option>
+                <option value="ganta">GANTA</option>
+                <option value="greenville">GREENVILLE</option>
+                <option value="pleebo">PLEEBO</option>
+                <option value="buchanan">BUCHANAN</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label"><i class="bi bi-house-fill me-1"></i>Accommodation</label>
+              <select class="form-select" id="accommodation">
+                <option value="">Choose...</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label"><i class="bi bi-pencil-square me-1"></i>Medical Challenge</label>
+              <textarea class="form-control" rows="3" id="specialRequests" placeholder="Medical concerns" style="height:auto;"></textarea>
+            </div>
+          </div>
+
+          <div class="row-separator"></div>
+
+          <button class="btn btn-primary w-100" type="submit">
+            <i class="bi bi-check2-circle me-2"></i>Submit Registration
+          </button>
+        </form>
+
+        <div id="message" class="mt-4"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('registrationForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    console.log('🔵 Submit button clicked!');
+    
+    const messageDiv = document.getElementById('message');
+    messageDiv.innerHTML = `<div class="alert alert-info"><i class="bi bi-hourglass-split me-2"></i>Processing registration...</div>`;
+
+    // Get form data
+    const data = {
+      fullName: document.getElementById('fullName').value.trim(),
+      email: document.getElementById('email').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      church: document.getElementById('church').value,
+      country: document.getElementById('country').value,
+      ageGroup: document.getElementById('ageGroup').value,
+      accommodation: document.getElementById('accommodation').value,
+      gender: document.getElementById('gender').value,
+      cluster: document.getElementById('cluster').value,
+      specialRequests: document.getElementById('specialRequests').value
+    };
+
+    console.log('📤 Sending data:', data);
+
+    try {
+      const response = await fetch('https://more-mrb9.onrender.com/api/registration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      console.log('📥 Response status:', response.status);
+      const result = await response.json();
+      console.log('📥 Response data:', result);
+
+      if (response.ok) {
+        messageDiv.innerHTML = `<div class="alert alert-success"><i class="bi bi-check-circle-fill me-2"></i>${result.message || 'Registration successful!'}</div>`;
+        document.getElementById('registrationForm').reset();
+      } else {
+        messageDiv.innerHTML = `<div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>${result.message || 'Server error'}</div>`;
+      }
+    } catch (error) {
+      console.error('❌ Fetch error:', error);
+      messageDiv.innerHTML = `
+        <div class="alert alert-danger">
+          <i class="bi bi-wifi-off me-2"></i>
+          Unable to connect to the server. 
+          <br><small>Make sure the backend is running: <code>node server.js</code></small>
+        </div>`;
+    }
+  });
+</script>
+
+</body>
+</html>
