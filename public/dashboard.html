@@ -362,7 +362,7 @@
 <script>
   (function() {
     // ----- state -----
-    const API_URL = "https://more-production-2b0d.up.railway.app//tags_info";
+    const API_URL = "https://more-production-2b0d.up.railway.app/tags_info";
     let allData = [];
     let filteredData = [];
     let currentPage = 1;
@@ -490,7 +490,7 @@
           const id = e.currentTarget.getAttribute('data-id');
           if (!id) return;
           if (!confirm('Delete this participant?')) return;
-          fetch(`https://more-production-2b0d.up.railway.app//tags_info/${id}`, { method: 'DELETE' })
+          fetch(`https://more-production-2b0d.up.railway.app/tags_info/${id}`, { method: 'DELETE' })
             .then(res => {
               if (!res.ok) throw new Error('Delete failed');
               allData = allData.filter(d => d._id !== id);

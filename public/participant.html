@@ -179,7 +179,7 @@
   <div id="container"></div>
 
   <script>
-    const API_URL = "https://more-production-2b0d.up.railway.app//tags_info";
+    const API_URL = "https://more-production-2b0d.up.railway.app/tags_info";
 
     let allParticipants = [];
 
@@ -274,7 +274,7 @@
 
           const qrDiv = tag.querySelector(`#qrcode-${i + index}`);
           new QRCode(qrDiv, {
-            text: `https://more-production-2b0d.up.railway.app//participant/${p.id}`,
+            text: `https://more-production-2b0d.up.railway.app/participant/${p.id}`,
             width: 160,
             height: 160
           });
