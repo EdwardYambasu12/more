@@ -400,7 +400,7 @@
     // ---------- fetch all participants and render summary ----------
     async function fetchAndRenderSummary() {
       try {
-        const res = await fetch('https://more-mrb9.onrender.com/fed');
+        const res = await fetch('https://more-production-2b0d.up.railway.app//fed');
         if (!res.ok) throw new Error('Network error');
         const data = await res.json();
 
@@ -457,7 +457,7 @@
 
       try {
         // 1. fetch current list
-        const res = await fetch('https://more-mrb9.onrender.com/fed');
+        const res = await fetch('https://more-production-2b0d.up.railway.app//fed');
         if (!res.ok) throw new Error('Failed to fetch data');
         const data = await res.json();
 
@@ -469,7 +469,7 @@
         }
 
         // 2. mark as fed
-        const postRes = await fetch(`https://more-mrb9.onrender.com/fed/${id}`, {
+        const postRes = await fetch(`https://more-production-2b0d.up.railway.app//fed/${id}`, {
           method: "POST",
         });
         const result = await postRes.json();
