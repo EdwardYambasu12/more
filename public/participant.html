@@ -109,75 +109,77 @@
       color: #374151;
     }
 
-    /* ===== Sheet / tag layout: 4 columns x 5 rows = 20 tags per A4 sheet ===== */
     .sheet {
       width: 210mm;
       height: 297mm;
-      padding: 8mm;
+      padding: 1cm;
       box-sizing: border-box;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      grid-template-rows: repeat(5, 1fr);
-      gap: 2mm;
-      background: #ffffff;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: stretch;
       page-break-after: always;
     }
 
     .tag {
+      position: relative;
+      width: 48%;
+      height: 48%;
+      background-image: url("youthalive.png"); /* Update path as needed */
+      background-size: cover;
+      background-position: center;
       box-sizing: border-box;
-      border: 1px dashed #9ca3af;
-      border-radius: 2mm;
-      background: #ffffff;
-      padding: 2mm;
+      margin-bottom: 1%;
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
+      justify-content: flex-end;
     }
 
-    .tag .name-label {
-      font-size: 7.5px;
-      color: #6b7280;
-      text-align: center;
-      max-width: 100%;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-bottom: 1mm;
+    .bottom-boxes {
+      display: grid;
+      justify-content: space-between;
+      gap: 8px;
     }
 
-    .tag .id-label {
-      font-family: 'Courier New', Courier, monospace;
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      color: #111827;
-      text-align: center;
-      margin-bottom: 0.8mm;
-    }
-
-    .tag .qrcode {
+    .color-box, .qr-box {
+      background: inherit;
+      flex: 1;
+      margin-top : 100px;
+      padding: 10px;
+      box-sizing: border-box;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
     }
 
-    .tag .qrcode canvas,
-    .tag .qrcode img {
-      display: block;
-      width: 20mm !important;
-      height: 20mm !important;
+    .color-label {
+      font-size: 2.2rem;
+      color : #ffffff;
+      margin-bottom: -15px;
+      font-weight: bold;
+      text-align:center;
+      text-transform: uppercase;
     }
 
-    .tag .color-label {
-      font-size: 7px;
-      font-weight: 700;
+    .wrapper{
+      display: flex;
+      width : 100%;
+      justify-content : center;
+    }
+
+    .id-label {
+      font-size: 1.5rem;
+      margin-bottom: 0px;
       color: #374151;
-      text-transform: uppercase;
+    }
+
+    .name-label {
+      font-size: 1rem;
+      margin-bottom: 4px;
+      color: #f9fafb;
       text-align: center;
-      margin-top: 0.8mm;
-      letter-spacing: 0.5px;
     }
 
     /* Export modal */
@@ -338,8 +340,7 @@
 
   <script>
     const API_URL = "https://more-production-2b0d.up.railway.app/tags_info";
-    const TAGS_PER_SHEET = 20; // 4 columns x 5 rows
-    const TAGS_PER_PAGE = 40; // 2 sheets shown per screen page
+    const TAGS_PER_PAGE = 20; // 5 sheets of 4 tags shown per page on screen
 
     let allParticipants = [];
     let currentPageData = []; // filtered + sorted (not yet paginated)
@@ -447,12 +448,13 @@
     // qrPrefix keeps QR div ids unique between the on-screen render and the hidden export render.
     function renderTags(data, targetContainer, qrPrefix) {
       targetContainer.innerHTML = "";
+      const tagsPerSheet = 4;
 
-      for (let i = 0; i < data.length; i += TAGS_PER_SHEET) {
+      for (let i = 0; i < data.length; i += tagsPerSheet) {
         const sheet = document.createElement("div");
         sheet.className = "sheet";
 
-        const participants = data.slice(i, i + TAGS_PER_SHEET);
+        const participants = data.slice(i, i + tagsPerSheet);
 
         participants.forEach((p, index) => {
           const tag = document.createElement("div");
@@ -461,10 +463,16 @@
           const qrId = `${qrPrefix}-${i + index}`;
 
           tag.innerHTML = `
-            <div class="name-label">${p.fullName || ""}</div>
-            <div class="id-label">${p.id}</div>
-            <div class="qrcode" id="${qrId}"></div>
-            <div class="color-label">${p.color || ""}</div>
+            <div class="wrapper">
+              <div class="bottom-boxes">
+                <div class="qr-box">
+                  
+                  <div class="id-label">ID: ${p.id}</div>
+                  <div class="qrcode" id="${qrId}"></div>
+                </div>
+                <div class="color-label">${p.color}</div>
+              </div>
+            </div>
           `;
 
           sheet.appendChild(tag);
@@ -472,18 +480,10 @@
           const qrDiv = tag.querySelector(`#${qrId}`);
           new QRCode(qrDiv, {
             text: `https://more-production-2b0d.up.railway.app/participant/${p.id}`,
-            width: 90,
-            height: 90,
-            correctLevel: QRCode.CorrectLevel.M
+            width: 160,
+            height: 160
           });
         });
-
-        // Pad the sheet with empty placeholder cells so the grid stays 4x5
-        // even on a partially-filled last sheet (keeps borders/spacing tidy).
-        for (let j = participants.length; j < TAGS_PER_SHEET; j++) {
-          const filler = document.createElement("div");
-          sheet.appendChild(filler);
-        }
 
         targetContainer.appendChild(sheet);
       }
