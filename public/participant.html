@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <title>AYAC 2025 Tags</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-  <script src="https://raw.githack.com/eKoopmans/html2pdf/master/dist/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     @media print {
       .sheet { page-break-after: always; }
-      #export-btn, .controls { display: none; }
+      #export-btn, .controls, .pagination { display: none; }
     }
 
     body {
@@ -41,7 +41,7 @@
       border: 1px solid #d1d5db;
     }
 
-    #export-btn, #apply-btn {
+    #export-btn, #apply-btn, .modal-btn.primary {
       padding: 10px 20px;
       background-color: #2563eb;
       color: white;
@@ -51,11 +51,11 @@
       font-size: 1rem;
     }
 
-    #export-btn:hover, #apply-btn:hover {
+    #export-btn:hover, #apply-btn:hover, .modal-btn.primary:hover {
       background-color: #1e40af;
     }
 
-    #reset-btn {
+    #reset-btn, .modal-btn.secondary {
       padding: 10px 20px;
       background-color: #e5e7eb;
       color: #374151;
@@ -65,7 +65,7 @@
       font-size: 1rem;
     }
 
-    #reset-btn:hover {
+    #reset-btn:hover, .modal-btn.secondary:hover {
       background-color: #d1d5db;
     }
 
@@ -74,6 +74,38 @@
       color: #6b7280;
       margin-bottom: 1rem;
       text-align: center;
+    }
+
+    /* Pagination controls */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      margin: 1rem 0;
+    }
+
+    .pagination button {
+      padding: 8px 16px;
+      font-size: 0.95rem;
+      border-radius: 5px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .pagination button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .pagination button:hover:not(:disabled) {
+      background: #f3f4f6;
+    }
+
+    .pagination span {
+      font-size: 0.9rem;
+      color: #374151;
     }
 
     .sheet {
@@ -148,6 +180,105 @@
       color: #f9fafb;
       text-align: center;
     }
+
+    /* Export modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-box {
+      background: #fff;
+      border-radius: 10px;
+      padding: 24px;
+      width: 90%;
+      max-width: 380px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .modal-box h3 {
+      margin-top: 0;
+      margin-bottom: 4px;
+      color: #111827;
+    }
+
+    .modal-sub {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+
+    .modal-field {
+      margin-bottom: 14px;
+    }
+
+    .modal-field label {
+      display: block;
+      font-size: 0.85rem;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+
+    .modal-field input {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 5px;
+      border: 1px solid #d1d5db;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+    }
+
+    .modal-count {
+      font-size: 0.85rem;
+      color: #2563eb;
+      margin-bottom: 16px;
+      min-height: 1.2em;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .modal-error {
+      font-size: 0.85rem;
+      color: #dc2626;
+      margin-bottom: 10px;
+      min-height: 1.2em;
+    }
+
+    /* Full-screen cover shown while the export container is rendered on-screen
+       (html2canvas struggles to capture elements positioned far off-screen,
+       which was causing blank PDFs) */
+    .export-cover {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #ffffff;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      font-size: 1.1rem;
+      color: #374151;
+    }
+
+    #export-render-area {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: #ffffff;
+    }
   </style>
 </head>
 <body>
@@ -178,10 +309,41 @@
   <div id="result-count"></div>
   <div id="container"></div>
 
+  <div class="pagination">
+    <button id="prev-page-btn">← Prev</button>
+    <span id="page-label">Page 1</span>
+    <button id="next-page-btn">Next →</button>
+  </div>
+
+  <!-- Export by date-range modal -->
+  <div class="modal-overlay" id="export-modal">
+    <div class="modal-box">
+      <h3>Export tags by registration date</h3>
+      <div class="modal-sub">Only participants registered within this window will be included in the PDF.</div>
+      <div class="modal-field">
+        <label for="export-from">From</label>
+        <input type="date" id="export-from" />
+      </div>
+      <div class="modal-field">
+        <label for="export-to">To</label>
+        <input type="date" id="export-to" />
+      </div>
+      <div class="modal-error" id="export-error"></div>
+      <div class="modal-count" id="export-count"></div>
+      <div class="modal-actions">
+        <button class="modal-btn secondary" id="export-cancel-btn">Cancel</button>
+        <button class="modal-btn primary" id="export-confirm-btn">Export PDF</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const API_URL = "https://more-production-2b0d.up.railway.app/tags_info";
+    const TAGS_PER_PAGE = 20; // 5 sheets of 4 tags shown per page on screen
 
     let allParticipants = [];
+    let currentPageData = []; // filtered + sorted (not yet paginated)
+    let currentPage = 1;
 
     const searchInput = document.getElementById("search-input");
     const clusterFilter = document.getElementById("cluster-filter");
@@ -192,12 +354,33 @@
     const resultCount = document.getElementById("result-count");
     const container = document.getElementById("container");
 
+    const prevPageBtn = document.getElementById("prev-page-btn");
+    const nextPageBtn = document.getElementById("next-page-btn");
+    const pageLabel = document.getElementById("page-label");
+
+    const exportModal = document.getElementById("export-modal");
+    const exportFromInput = document.getElementById("export-from");
+    const exportToInput = document.getElementById("export-to");
+    const exportError = document.getElementById("export-error");
+    const exportCount = document.getElementById("export-count");
+    const exportCancelBtn = document.getElementById("export-cancel-btn");
+    const exportConfirmBtn = document.getElementById("export-confirm-btn");
+
     fetch(API_URL)
       .then(res => res.json())
       .then(data => {
         allParticipants = data;
         populateClusterOptions(allParticipants);
-        renderTags(allParticipants);
+        currentPageData = getFilteredAndSortedData();
+        currentPage = 1;
+        renderCurrentPage();
+
+        if (typeof QRCode === "undefined") {
+          console.error("QRCode library did not load — QR codes will not render.");
+        }
+        if (typeof html2pdf === "undefined") {
+          console.error("html2pdf library did not load — PDF export will not work.");
+        }
       })
       .catch(err => {
         document.body.innerHTML = `<p style="color:red; padding:2rem;">Error fetching participants: ${err.message}</p>`;
@@ -241,10 +424,29 @@
       return result;
     }
 
-    function renderTags(data) {
-      container.innerHTML = "";
-      resultCount.textContent = `${data.length} participant${data.length === 1 ? "" : "s"} shown`;
+    // Renders only the slice of currentPageData belonging to currentPage
+    function renderCurrentPage() {
+      const total = currentPageData.length;
+      const totalPages = Math.max(1, Math.ceil(total / TAGS_PER_PAGE));
+      if (currentPage > totalPages) currentPage = totalPages;
+      if (currentPage < 1) currentPage = 1;
 
+      const start = (currentPage - 1) * TAGS_PER_PAGE;
+      const pageSlice = currentPageData.slice(start, start + TAGS_PER_PAGE);
+
+      resultCount.textContent = `${total} participant${total === 1 ? "" : "s"} found — showing ${pageSlice.length ? start + 1 : 0}-${start + pageSlice.length} of ${total}`;
+
+      renderTags(pageSlice, container, "qrcode-page");
+
+      pageLabel.textContent = `Page ${currentPage} of ${totalPages}`;
+      prevPageBtn.disabled = currentPage <= 1;
+      nextPageBtn.disabled = currentPage >= totalPages;
+    }
+
+    // Generic renderer: draws sheets of tags for given data into given container.
+    // qrPrefix keeps QR div ids unique between the on-screen render and the hidden export render.
+    function renderTags(data, targetContainer, qrPrefix) {
+      targetContainer.innerHTML = "";
       const tagsPerSheet = 4;
 
       for (let i = 0; i < data.length; i += tagsPerSheet) {
@@ -257,13 +459,15 @@
           const tag = document.createElement("div");
           tag.className = "tag";
 
+          const qrId = `${qrPrefix}-${i + index}`;
+
           tag.innerHTML = `
             <div class="wrapper">
               <div class="bottom-boxes">
                 <div class="qr-box">
                   
                   <div class="id-label">ID: ${p.id}</div>
-                  <div class="qrcode" id="qrcode-${i + index}"></div>
+                  <div class="qrcode" id="${qrId}"></div>
                 </div>
                 <div class="color-label">${p.color}</div>
               </div>
@@ -272,7 +476,7 @@
 
           sheet.appendChild(tag);
 
-          const qrDiv = tag.querySelector(`#qrcode-${i + index}`);
+          const qrDiv = tag.querySelector(`#${qrId}`);
           new QRCode(qrDiv, {
             text: `https://more-production-2b0d.up.railway.app/participant/${p.id}`,
             width: 160,
@@ -280,21 +484,27 @@
           });
         });
 
-        container.appendChild(sheet);
+        targetContainer.appendChild(sheet);
       }
     }
 
     applyBtn.addEventListener("click", () => {
-      renderTags(getFilteredAndSortedData());
+      currentPageData = getFilteredAndSortedData();
+      currentPage = 1;
+      renderCurrentPage();
     });
 
     // Live search-as-you-type, still respects current filter/sort selections
     searchInput.addEventListener("input", () => {
-      renderTags(getFilteredAndSortedData());
+      currentPageData = getFilteredAndSortedData();
+      currentPage = 1;
+      renderCurrentPage();
     });
 
     clusterFilter.addEventListener("change", () => {
-      renderTags(getFilteredAndSortedData());
+      currentPageData = getFilteredAndSortedData();
+      currentPage = 1;
+      renderCurrentPage();
     });
 
     resetBtn.addEventListener("click", () => {
@@ -302,19 +512,158 @@
       clusterFilter.value = "";
       sortField.value = "id";
       sortDirection.value = "asc";
-      renderTags(allParticipants);
+      currentPageData = getFilteredAndSortedData();
+      currentPage = 1;
+      renderCurrentPage();
     });
 
+    prevPageBtn.addEventListener("click", () => {
+      currentPage--;
+      renderCurrentPage();
+    });
+
+    nextPageBtn.addEventListener("click", () => {
+      currentPage++;
+      renderCurrentPage();
+    });
+
+    // ----- Export by date-range -----
+
+    function parseTimestamp(p) {
+      return new Date(p.timestamp);
+    }
+
+    function getDateRangeMatches() {
+      const fromVal = exportFromInput.value;
+      const toVal = exportToInput.value;
+
+      if (!fromVal || !toVal) return null;
+
+      const fromDate = new Date(fromVal + "T00:00:00");
+      const toDate = new Date(toVal + "T23:59:59.999");
+
+      if (fromDate > toDate) return null;
+
+      // Respect the current search/cluster filter too, so export matches what the user is looking at
+      const baseSet = getFilteredAndSortedData();
+
+      return baseSet.filter(p => {
+        const ts = parseTimestamp(p);
+        return ts >= fromDate && ts <= toDate;
+      });
+    }
+
+    function updateExportPreview() {
+      const fromVal = exportFromInput.value;
+      const toVal = exportToInput.value;
+
+      if (!fromVal || !toVal) {
+        exportError.textContent = "";
+        exportCount.textContent = "";
+        return;
+      }
+
+      const fromDate = new Date(fromVal + "T00:00:00");
+      const toDate = new Date(toVal + "T23:59:59.999");
+
+      if (fromDate > toDate) {
+        exportError.textContent = "\"From\" date must be before \"To\" date.";
+        exportCount.textContent = "";
+        return;
+      }
+
+      exportError.textContent = "";
+      const matches = getDateRangeMatches();
+      exportCount.textContent = `${matches.length} participant${matches.length === 1 ? "" : "s"} match this range.`;
+    }
+
     document.getElementById("export-btn").addEventListener("click", () => {
+      exportFromInput.value = "";
+      exportToInput.value = "";
+      exportError.textContent = "";
+      exportCount.textContent = "";
+      exportModal.classList.add("open");
+    });
+
+    exportCancelBtn.addEventListener("click", () => {
+      exportModal.classList.remove("open");
+    });
+
+    exportFromInput.addEventListener("change", updateExportPreview);
+    exportToInput.addEventListener("change", updateExportPreview);
+
+    exportConfirmBtn.addEventListener("click", () => {
+      const matches = getDateRangeMatches();
+
+      if (!matches) {
+        exportError.textContent = "Please choose a valid From and To date.";
+        return;
+      }
+
+      if (matches.length === 0) {
+        exportError.textContent = "No participants registered in that date range.";
+        return;
+      }
+
+      if (typeof html2pdf === "undefined") {
+        exportError.textContent = "PDF library failed to load. Check your internet connection and refresh the page, then try again.";
+        return;
+      }
+
+      if (typeof QRCode === "undefined") {
+        exportError.textContent = "QR code library failed to load. Check your internet connection and refresh the page, then try again.";
+        return;
+      }
+
+      exportConfirmBtn.disabled = true;
+      exportConfirmBtn.textContent = "Generating…";
+
+      // Close the picker modal first so it doesn't sit on top of the cover
+      exportModal.classList.remove("open");
+
+      // html2canvas can only reliably capture content that's actually laid
+      // out in the visible page — elements pushed far off-screen (e.g.
+      // left: -99999px) often come back blank. So instead we render the
+      // export tags on-screen, but behind a plain white "Generating…" cover.
+      const cover = document.createElement("div");
+      cover.className = "export-cover";
+      cover.textContent = `Generating PDF for ${matches.length} participant${matches.length === 1 ? "" : "s"}…`;
+      document.body.appendChild(cover);
+
+      const exportContainer = document.createElement("div");
+      exportContainer.id = "export-render-area";
+      document.body.appendChild(exportContainer);
+
+      renderTags(matches, exportContainer, "qrcode-export");
+
+      const fromLabel = exportFromInput.value;
+      const toLabel = exportToInput.value;
+
       const opt = {
         margin:       0,
-        filename:     'ayac_tags.pdf',
+        filename:     `ayac_tags_${fromLabel}_to_${toLabel}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
+        html2canvas:  { scale: 2, useCORS: true },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
-      html2pdf().set(opt).from(container).save();
+      function cleanup() {
+        document.body.removeChild(exportContainer);
+        document.body.removeChild(cover);
+        exportConfirmBtn.disabled = false;
+        exportConfirmBtn.textContent = "Export PDF";
+      }
+
+      // Give QR codes a moment to finish drawing to canvas before capture
+      setTimeout(() => {
+        html2pdf().set(opt).from(exportContainer).save()
+          .then(cleanup)
+          .catch((err) => {
+            console.error("PDF export failed:", err);
+            cleanup();
+            alert("Something went wrong generating the PDF. Please try again.");
+          });
+      }, 400);
     });
   </script>
 </body>
