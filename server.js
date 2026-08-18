@@ -36,6 +36,9 @@ app.get("/", (req, res) => {
 app.get("/tags", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "participant.html"));
 });
+app.get("/list", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "list.html"));
+});
 app.get("/scan", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "scan.html"));
 });

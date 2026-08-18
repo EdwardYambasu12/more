@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AYAC 2025 — Participant Data Export</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 1rem;
+      font-family: Arial, sans-serif;
+      background: #f9fafb;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.4rem;
+      color: #111827;
+      margin-bottom: 0.25rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-bottom: 1rem;
+    }
+
+    .controls {
+      text-align: center;
+      margin-bottom: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .controls input,
+    .controls select,
+    .controls button {
+      padding: 8px 10px;
+      font-size: 0.95rem;
+      border-radius: 5px;
+      border: 1px solid #d1d5db;
+    }
+
+    #export-btn, #apply-btn, .modal-btn.primary {
+      padding: 10px 20px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    #export-btn:hover, #apply-btn:hover, .modal-btn.primary:hover {
+      background-color: #1e40af;
+    }
+
+    #export-btn:disabled {
+      background-color: #93c5fd;
+      cursor: not-allowed;
+    }
+
+    #reset-btn, .modal-btn.secondary {
+      padding: 10px 20px;
+      background-color: #e5e7eb;
+      color: #374151;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    #reset-btn:hover, .modal-btn.secondary:hover {
+      background-color: #d1d5db;
+    }
+
+    /* Column picker */
+    .column-picker {
+      background: #fff;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      margin-bottom: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .column-picker span.label {
+      font-size: 0.85rem;
+      color: #6b7280;
+      font-weight: bold;
+      margin-right: 4px;
+    }
+
+    .column-picker label {
+      font-size: 0.9rem;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    #result-count {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .table-wrap {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      overflow-x: auto;
+      max-width: 100%;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 8px 10px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #2563eb;
+      color: #fff;
+      position: sticky;
+      top: 0;
+    }
+
+    tr:nth-child(even) {
+      background: #f9fafb;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #9ca3af;
+      padding: 2rem;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>AYAC 2025 — Participant Data Export</h1>
+  <div class="subtitle">Filter, sort, then export the current results as a PDF table.</div>
+
+  <div class="controls">
+    <input type="text" id="search-input" placeholder="Search name, email, or church..." />
+
+    <select id="cluster-filter">
+      <option value="">All Clusters</option>
+    </select>
+
+    <select id="sort-field">
+      <option value="id">Sort by ID</option>
+      <option value="fullName">Sort by Name</option>
+      <option value="church">Sort by Church</option>
+      <option value="cluster">Sort by Cluster</option>
+    </select>
+
+    <select id="sort-direction">
+      <option value="asc">Ascending</option>
+      <option value="desc">Descending</option>
+    </select>
+
+    <button id="apply-btn">Apply</button>
+    <button id="reset-btn">Reset</button>
+    <button id="export-btn">📄 Export Table to PDF</button>
+  </div>
+
+  <div class="column-picker" id="column-picker">
+    <span class="label">Columns:</span>
+    <!-- checkboxes injected by JS -->
+  </div>
+
+  <div id="result-count"></div>
+
+  <div class="table-wrap">
+    <table id="preview-table">
+      <thead id="preview-thead"></thead>
+      <tbody id="preview-tbody"></tbody>
+    </table>
+    <div class="empty-state" id="empty-state" style="display:none;">No participants match the current filters.</div>
+  </div>
+
+  <script>
+    const API_URL = "https://more-production-2b0d.up.railway.app/tags_info";
+
+    // Column definitions: key = participant field, label = table header, pdfWidth = relative width hint
+    const COLUMNS = [
+      { key: "id",        label: "ID",       default: true },
+      { key: "fullName",  label: "Full Name", default: true },
+      { key: "church",    label: "Church",    default: true },
+      { key: "cluster",   label: "Cluster",   default: true },
+      { key: "color",     label: "Color",     default: true },
+      { key: "email",     label: "Email",     default: false },
+      { key: "phone",     label: "Phone",     default: false },
+      { key: "timestamp", label: "Registered", default: false }
+    ];
+
+    let allParticipants = [];
+    let currentPageData = [];
+
+    const searchInput = document.getElementById("search-input");
+    const clusterFilter = document.getElementById("cluster-filter");
+    const sortField = document.getElementById("sort-field");
+    const sortDirection = document.getElementById("sort-direction");
+    const applyBtn = document.getElementById("apply-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const exportBtn = document.getElementById("export-btn");
+    const resultCount = document.getElementById("result-count");
+    const columnPicker = document.getElementById("column-picker");
+    const previewThead = document.getElementById("preview-thead");
+    const previewTbody = document.getElementById("preview-tbody");
+    const emptyState = document.getElementById("empty-state");
+    const previewTable = document.getElementById("preview-table");
+
+    // Build column checkboxes
+    COLUMNS.forEach(col => {
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = col.key;
+      checkbox.checked = col.default;
+      checkbox.className = "col-checkbox";
+      checkbox.addEventListener("change", renderPreviewTable);
+      label.appendChild(checkbox);
+      label.appendChild(document.createTextNode(col.label));
+      columnPicker.appendChild(label);
+    });
+
+    function getSelectedColumns() {
+      const checked = Array.from(document.querySelectorAll(".col-checkbox"))
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+      return COLUMNS.filter(c => checked.includes(c.key));
+    }
+
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        allParticipants = data;
+        populateClusterOptions(allParticipants);
+        currentPageData = getFilteredAndSortedData();
+        renderPreviewTable();
+
+        if (typeof window.jspdf === "undefined") {
+          console.error("jsPDF failed to load — export will not work.");
+        }
+      })
+      .catch(err => {
+        document.body.innerHTML = `<p style="color:red; padding:2rem;">Error fetching participants: ${err.message}</p>`;
+      });
+
+    function populateClusterOptions(data) {
+      const clusters = [...new Set(data.map(p => p.cluster).filter(Boolean))].sort();
+      clusters.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        clusterFilter.appendChild(opt);
+      });
+    }
+
+    function getFilteredAndSortedData() {
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      const cluster = clusterFilter.value;
+      const field = sortField.value;
+      const direction = sortDirection.value;
+
+      let result = allParticipants.filter(p => {
+        const matchesSearch = !searchTerm || [p.fullName, p.email, p.church]
+          .filter(Boolean)
+          .some(val => val.toLowerCase().includes(searchTerm));
+
+        const matchesCluster = !cluster || p.cluster === cluster;
+
+        return matchesSearch && matchesCluster;
+      });
+
+      result.sort((a, b) => {
+        const aVal = (a[field] ?? "").toString().toLowerCase();
+        const bVal = (b[field] ?? "").toString().toLowerCase();
+
+        if (aVal < bVal) return direction === "asc" ? -1 : 1;
+        if (aVal > bVal) return direction === "asc" ? 1 : -1;
+        return 0;
+      });
+
+      return result;
+    }
+
+    function formatCell(p, key) {
+      if (key === "timestamp") {
+        if (!p.timestamp) return "";
+        const d = new Date(p.timestamp);
+        return isNaN(d) ? p.timestamp : d.toLocaleDateString();
+      }
+      return p[key] ?? "";
+    }
+
+    function renderPreviewTable() {
+      const cols = getSelectedColumns();
+      const total = currentPageData.length;
+
+      resultCount.textContent = `${total} participant${total === 1 ? "" : "s"} match the current filters.`;
+
+      // Header
+      previewThead.innerHTML = "";
+      const headRow = document.createElement("tr");
+      cols.forEach(c => {
+        const th = document.createElement("th");
+        th.textContent = c.label;
+        headRow.appendChild(th);
+      });
+      previewThead.appendChild(headRow);
+
+      // Body
+      previewTbody.innerHTML = "";
+      if (total === 0 || cols.length === 0) {
+        previewTable.style.display = "none";
+        emptyState.style.display = "block";
+        emptyState.textContent = cols.length === 0
+          ? "Select at least one column to preview and export."
+          : "No participants match the current filters.";
+        return;
+      }
+      previewTable.style.display = "table";
+      emptyState.style.display = "none";
+
+      currentPageData.forEach(p => {
+        const row = document.createElement("tr");
+        cols.forEach(c => {
+          const td = document.createElement("td");
+          td.textContent = formatCell(p, c.key);
+          row.appendChild(td);
+        });
+        previewTbody.appendChild(row);
+      });
+    }
+
+    applyBtn.addEventListener("click", () => {
+      currentPageData = getFilteredAndSortedData();
+      renderPreviewTable();
+    });
+
+    searchInput.addEventListener("input", () => {
+      currentPageData = getFilteredAndSortedData();
+      renderPreviewTable();
+    });
+
+    clusterFilter.addEventListener("change", () => {
+      currentPageData = getFilteredAndSortedData();
+      renderPreviewTable();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      searchInput.value = "";
+      clusterFilter.value = "";
+      sortField.value = "id";
+      sortDirection.value = "asc";
+      currentPageData = getFilteredAndSortedData();
+      renderPreviewTable();
+    });
+
+    exportBtn.addEventListener("click", () => {
+      const cols = getSelectedColumns();
+
+      if (typeof window.jspdf === "undefined") {
+        alert("PDF library failed to load. Check your internet connection and refresh the page, then try again.");
+        return;
+      }
+
+      if (cols.length === 0) {
+        alert("Select at least one column to export.");
+        return;
+      }
+
+      if (currentPageData.length === 0) {
+        alert("No participants match the current filters — nothing to export.");
+        return;
+      }
+
+      exportBtn.disabled = true;
+      exportBtn.textContent = "Generating…";
+
+      try {
+        const { jsPDF } = window.jspdf;
+        // Landscape when there are many columns, portrait otherwise
+        const orientation = cols.length > 5 ? "landscape" : "portrait";
+        const doc = new jsPDF({ unit: "mm", format: "a4", orientation });
+
+        const pageWidth = doc.internal.pageSize.getWidth();
+
+        doc.setFontSize(14);
+        doc.text("AYAC 2025 — Participant List", 14, 15);
+
+        doc.setFontSize(9);
+        doc.setTextColor(107, 114, 128);
+        const filterBits = [];
+        if (searchInput.value.trim()) filterBits.push(`Search: "${searchInput.value.trim()}"`);
+        if (clusterFilter.value) filterBits.push(`Cluster: ${clusterFilter.value}`);
+        filterBits.push(`Sorted by ${sortField.options[sortField.selectedIndex].text} (${sortDirection.value})`);
+        filterBits.push(`Generated ${new Date().toLocaleString()}`);
+        doc.text(filterBits.join("   |   "), 14, 21);
+        doc.setTextColor(0, 0, 0);
+
+        const head = [cols.map(c => c.label)];
+        const body = currentPageData.map(p => cols.map(c => String(formatCell(p, c.key))));
+
+        doc.autoTable({
+          head,
+          body,
+          startY: 26,
+          margin: { left: 14, right: 14 },
+          styles: { fontSize: 8, cellPadding: 2 },
+          headStyles: { fillColor: [37, 99, 235], textColor: 255, fontStyle: "bold" },
+          alternateRowStyles: { fillColor: [249, 250, 251] }
+        });
+
+        // Add "Page X of Y" footers now that the final page count is known
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(150);
+          doc.text(
+            `Page ${i} of ${totalPages}`,
+            pageWidth - 14,
+            doc.internal.pageSize.getHeight() - 8,
+            { align: "right" }
+          );
+        }
+
+        doc.save(`ayac_participants_${new Date().toISOString().slice(0, 10)}.pdf`);
+      } catch (err) {
+        console.error("PDF export failed:", err);
+        alert("Something went wrong generating the PDF. Please try again.");
+      } finally {
+        exportBtn.disabled = false;
+        exportBtn.textContent = "📄 Export Table to PDF";
+      }
+    });
+  </script>
+</body>
+</html>
