@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <title>AYAC 2025 Tags</title>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     @media print {
       .sheet { page-break-after: always; }
@@ -378,8 +379,8 @@
         if (typeof QRCode === "undefined") {
           console.error("QRCode library did not load — QR codes will not render.");
         }
-        if (typeof html2pdf === "undefined") {
-          console.error("html2pdf library did not load — PDF export will not work.");
+        if (typeof html2canvas === "undefined" || typeof window.jspdf === "undefined") {
+          console.error("PDF export libraries did not load — export will not work.");
         }
       })
       .catch(err => {
@@ -605,7 +606,7 @@
         return;
       }
 
-      if (typeof html2pdf === "undefined") {
+      if (typeof html2canvas === "undefined" || typeof window.jspdf === "undefined") {
         exportError.textContent = "PDF library failed to load. Check your internet connection and refresh the page, then try again.";
         return;
       }
@@ -621,13 +622,12 @@
       // Close the picker modal first so it doesn't sit on top of the cover
       exportModal.classList.remove("open");
 
-      // html2canvas can only reliably capture content that's actually laid
-      // out in the visible page — elements pushed far off-screen (e.g.
-      // left: -99999px) often come back blank. So instead we render the
-      // export tags on-screen, but behind a plain white "Generating…" cover.
+      // Render the matched tags on-screen (behind a plain white cover) so
+      // the browser actually lays them out — content pushed off-screen or
+      // never rendered comes back blank when captured.
       const cover = document.createElement("div");
       cover.className = "export-cover";
-      cover.textContent = `Generating PDF for ${matches.length} participant${matches.length === 1 ? "" : "s"}…`;
+      cover.textContent = `Generating PDF for ${matches.length} participant${matches.length === 1 ? "" : "s"}… 0%`;
       document.body.appendChild(cover);
 
       const exportContainer = document.createElement("div");
@@ -639,14 +639,6 @@
       const fromLabel = exportFromInput.value;
       const toLabel = exportToInput.value;
 
-      const opt = {
-        margin:       0,
-        filename:     `ayac_tags_${fromLabel}_to_${toLabel}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
       function cleanup() {
         document.body.removeChild(exportContainer);
         document.body.removeChild(cover);
@@ -654,15 +646,43 @@
         exportConfirmBtn.textContent = "Export PDF";
       }
 
-      // Give QR codes a moment to finish drawing to canvas before capture
-      setTimeout(() => {
-        html2pdf().set(opt).from(exportContainer).save()
-          .then(cleanup)
-          .catch((err) => {
-            console.error("PDF export failed:", err);
-            cleanup();
-            alert("Something went wrong generating the PDF. Please try again.");
-          });
+      // Give QR codes a moment to finish drawing to their canvases
+      setTimeout(async () => {
+        try {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+          const sheetEls = exportContainer.querySelectorAll(".sheet");
+
+          if (sheetEls.length === 0) {
+            throw new Error("No tag sheets were generated.");
+          }
+
+          // Capture and add ONE A4 sheet at a time. Capturing everything as
+          // a single giant canvas is what was causing blank PDFs — large
+          // exports exceed the browser's max canvas size and silently
+          // return an empty image.
+          for (let i = 0; i < sheetEls.length; i++) {
+            const canvas = await html2canvas(sheetEls[i], {
+              scale: 2,
+              useCORS: true,
+              backgroundColor: "#ffffff"
+            });
+            const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+            if (i > 0) doc.addPage();
+            doc.addImage(imgData, "JPEG", 0, 0, 210, 297);
+
+            const pct = Math.round(((i + 1) / sheetEls.length) * 100);
+            cover.textContent = `Generating PDF for ${matches.length} participant${matches.length === 1 ? "" : "s"}… ${pct}%`;
+          }
+
+          doc.save(`ayac_tags_${fromLabel}_to_${toLabel}.pdf`);
+          cleanup();
+        } catch (err) {
+          console.error("PDF export failed:", err);
+          cleanup();
+          alert("Something went wrong generating the PDF. Please try again, or try a smaller date range.");
+        }
       }, 400);
     });
   </script>
